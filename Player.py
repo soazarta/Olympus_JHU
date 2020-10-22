@@ -1,11 +1,16 @@
 class Player:
-    def __init__(self, character):
+    def __init__(self, character, connection):
         self.character = character
+        self.connection = connection
+        self.ready = False
         self.room = "Hallway"
-        print(f"{character} has joined the game")
+        # print(f"{character} has joined the game")
 
     def __str__(self):
         return self.character
+
+    def fileno(self):
+        return self.connection.fileno()
 
     def suggestion(self,special_envelope):
         characters = ["Mrs. White", "Mr. Green", "Mrs. Peacock", "Professor Plum", "Miss Scarlet", "Colonel Mustard"]
