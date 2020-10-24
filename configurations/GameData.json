@@ -1,0 +1,29 @@
+{
+    "Characters": [
+        "Mrs. White",
+        "Mr. Green",
+        "Mrs. Peacock",
+        "Professor Plum",
+        "Miss Scarlet",
+        "Colonel Mustard"
+    ],
+    "Weapons": [
+        "Candlestick",
+        "Dagger",
+        "Lead Pipe",
+        "Revolver",
+        "Rope",
+        "Wrench"
+    ],
+    "Rooms": [
+        "Kitchen",
+        "Ballroom",
+        "Conservatory",
+        "Dining Room",
+        "Cellar",
+        "Billiard Room",
+        "Library",
+        "Lounge",
+        "Study"
+    ]
+}
