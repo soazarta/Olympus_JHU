@@ -1,5 +1,7 @@
 import json
 import os
+import pickle 
+import socket
 
 from enum import Enum
 from pathlib import Path
@@ -11,7 +13,9 @@ class Action(Enum):
     Choose_Character = 1
     Ready = 2
     Waiting = 3
-    Play_Game = 4
+    Game_Ready = 4
+    Play = 5
+    Wait = 6
 
 
 # Packet class for communication between server and client
@@ -20,6 +24,22 @@ class Packet:
         self.action = action
         self.state = state
         self.data = data
+
+
+def process_packet(packet: Packet, connection: socket.socket) -> Packet:
+    """Process a socket connection packet
+
+    Args:
+        packet (Packet): The packet to be processed
+        connection (socket.socket): The socket connection
+
+    Returns:
+        packet (Packet): The processed packet
+    """
+    connection.send(pickle.dumps(packet))    
+    response = connection.recv(1024)
+
+    return pickle.loads(response)
 
 
 def load_game_data() -> object:

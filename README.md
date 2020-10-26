@@ -11,4 +11,5 @@
     - Server setup
     - Multiple clients setup
     - Client choice of game character
+    - Alternating between clients' turns (base code for gameplay)
     - Display of current game state on client and server

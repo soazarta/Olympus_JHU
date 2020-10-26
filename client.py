@@ -1,10 +1,8 @@
 import pickle
-import select
 import socket
-import sys
-import time
 
-from configurations.helpers import Packet, Action
+from configurations.helpers import Action, Packet
+from configurations.helpers import process_packet
 
 
 HOST = "localhost"
@@ -12,7 +10,7 @@ PORT = 54321
 
 
 def handle_server_communications(s: socket.socket):
-    """Handle all incoming and outgoing communication with server
+    """Handle all incoming and outgoing communications with server
 
     Args:
         s (socket.socket): The communication socket to listen on
@@ -23,8 +21,6 @@ def handle_server_communications(s: socket.socket):
 
     while True:
         if packet.action == Action.Choose_Character:
-            print(packet.state)
-
             # Display available characters
             characters = packet.data            
             print("Available characters: ")                
@@ -42,29 +38,31 @@ def handle_server_communications(s: socket.socket):
             name = characters.pop(chosen_character)
             packet.action = Action.Ready
             packet.data = {"character": name, "characters": characters}
-            s.send(pickle.dumps(packet))
-
-            # Update packet with server response
-            response = s.recv(1024)
-            packet = pickle.loads(response)
+            
+            packet = process_packet(packet, s)
+            print("Waiting for other players to join ...")
 
         if packet.action == Action.Waiting:
-            print(packet.state)
-
-            print("Waiting for other players to join ...")
-            time.sleep(3)
-            s.send(pickle.dumps(packet))
-
-            # Update packet with server response
-            response = s.recv(1024)
-            packet = pickle.loads(response)
-
-        if packet.action == Action.Play_Game:
-            print(packet.state)
+            # Wait for other players to join
+            packet = process_packet(packet, s)
             
-            print("Playing game!")
-            s.send(pickle.dumps(packet))
-            break
+        if packet.action == Action.Game_Ready:            
+            print("Ready to play game!")
+            packet = process_packet(packet, s)
+
+        if packet.action == Action.Play:
+            print(packet.state)
+            # TODO: Game logic to be integrated here
+            input("It's your turn, input something... ")
+
+            packet.action = Action.Game_Ready
+            packet = process_packet(packet, s)
+
+        if packet.action == Action.Wait:
+            # Wait for other players' turn
+            packet.action = Action.Game_Ready
+            packet = process_packet(packet, s)
+
 
     s.close()
 

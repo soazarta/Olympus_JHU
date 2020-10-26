@@ -1,11 +1,9 @@
 import logging
-import pickle
-import select
 import socket
-import time
 
-from _thread import *
-from configurations.helpers import load_game_data, Packet, Action
+from _thread import start_new_thread, allocate_lock
+from configurations.helpers import Action, Packet
+from configurations.helpers import load_game_data, process_packet
 from src.Player import Player
 from src.Game import Game
 
@@ -16,79 +14,91 @@ HOST = "localhost"
 PORT = 54321
 
 
-def game_ready(game: Game) -> bool:
-    """Checks if all players are ready to play.
+def play_game(game: Game, lock) -> Packet:
+    """Handle players' turns during gameplay
 
     Args:
-        game (Game): The current game
+        game (Game): The game instance
+        lock: The threading lock object
 
     Returns:
-        bool: If all players are ready
+        The packet
     """
-    # TODO: configure this value dynamically on server startup
-    return len(game.players) == 2
+    # Packet for current player's turn
+    turn = Packet(Action.Play, game.game_state(), None)
+    
+    # Packet for all other players
+    wait = Packet(Action.Wait, game.game_state(), None)
+
+    # Update next player's turn
+    lock.acquire()
+    
+    current_turn = game.turns.popleft()
+    logging.debug(f"Player {current_turn} is playing ...")
+    
+    res = process_packet(turn, current_turn.connection)
+
+    for player in game.turns:
+        process_packet(wait, player.connection)
+
+    logging.debug(f"Player {current_turn} is done playing")
+    game.turns.append(current_turn)
+
+    lock.release()
+
+    return res 
 
 
-def handle_client(connection: socket.socket, game: Game, packet: Packet):
-    """Handle client communication
+def handle_client(connection: socket.socket, game: Game, packet: Packet, lock):
+    """Handle client communications
 
     Args:
         connection (socket.socket): The client connection
-        game (Game): The current game isntance
+        game (Game): The game isntance
         packet (Packet): The socket communication packet
+        lock: The threading lock object
     """
-    response = None
     player = None
 
     while True:
         if packet.action == Action.Choose_Character:
             # Send a copy of available characters
             packet.data = game.characters
-            connection.send(pickle.dumps(packet))
-            
-            response = connection.recv(1024)
-            packet = pickle.loads(response)
+            packet = process_packet(packet, connection)
 
         if packet.action == Action.Ready:
             # Update available characters
+            character = packet.data["character"]
+            logging.debug(f"Player {character} has joined")
+
+            # TODO: Use thread lock to synchronize available characters update
             game.characters = packet.data["characters"]
             logging.debug(f"Available characters left: {game.characters}")
 
             # Create and add player to game
-            character = packet.data["character"]
-            player = Player(character)
+            player = Player(character, connection)
             game.players.append(player)
+            game.turns.append(player)
 
             # Check whether enough players have joined
-            packet.action = Action.Play_Game if game_ready(game) else Action.Waiting
+            packet.action = Action.Game_Ready if game.game_ready() else Action.Waiting
             packet.state = game.game_state()
             packet.data = None
-            connection.send(pickle.dumps(packet))
-            
-            response = connection.recv(1024)
-            packet = pickle.loads(response)
+
+            packet = process_packet(packet, connection)
 
         if packet.action == Action.Waiting:
-            # Check whether enough players have joined
-            if game_ready(game):                    
-                packet.action = Action.Play_Game
+            # Continue to wait until game is ready
+            if game.game_ready():
+                packet.action = Action.Game_Ready
                 packet.state = game.game_state()
-                
-                connection.send(pickle.dumps(packet))
-            else:
-                time.sleep(3)
-                connection.send(pickle.dumps(packet))
+            
+            packet = process_packet(packet, connection)
 
-            logging.debug(packet.state)
-            response = connection.recv(1024)
-            packet = pickle.loads(response)
+        if packet.action == Action.Game_Ready:
+            packet = play_game(game, lock)
 
-        if packet.action == Action.Play_Game:
-            logging.debug(game.game_state())
-            logging.debug(f"Playing Game!")
-            # TODO: gameplay logic to be integrated here
-            break
-
+        
     connection.close()
 
 
@@ -98,12 +108,14 @@ def handle_clients(s: socket.socket):
     Args:
         s (socket.socket): The communication socket to listen on
     """
-    clients = set()
 
     # Game instance setup
     # TODO: Support multiple games at once
     game_data = load_game_data()
     game = Game(game_data)
+
+    # Threading lock
+    lock = allocate_lock()
 
     while True:
         connection, address = s.accept()
@@ -113,10 +125,8 @@ def handle_clients(s: socket.socket):
         # Pass initial packet to new client
         packet = Packet(Action.Choose_Character, game.game_state(), None)
 
-        # Start a new thread per each client
-        start_new_thread(handle_client, (connection, game, packet, ))
-        clients.add(client_id)
-        logging.debug(f"{game.game_state()}")
+        # Handle each client's communication on a new thread
+        start_new_thread(handle_client, (connection, game, packet, lock, ))
 
     s.close()
 

@@ -1,5 +1,6 @@
 from random import randint
 
+from collections import deque
 from .Player import Player
 
 
@@ -9,7 +10,7 @@ class Game:
         """Initialize new instance of class Game
 
         Args:
-            game_data: object of game data
+            game_data (object): The game data
         """
         # Initialize game data
         self.characters = game_data["Characters"]
@@ -22,7 +23,7 @@ class Game:
         self.special_envelope = [self.characters[a], self.weapons[a], self.rooms[b]]        
 
         self.players = list()
-        self.current_player_turn = None
+        self.turns = deque()
 
 
     def game_state(self) -> str:
@@ -31,11 +32,21 @@ class Game:
         Returns:
             str: description of current game state
         """
-        state = "Current Game State\n"
+        state = "Game State\n"
         state += f"Players: {self.players}\n"
-        state += f"Turn: {self.current_player_turn}\n"
+        state += f"Turn: {self.turns[0] if len(self.turns) > 0 else None}\n"
 
         return state
+
+
+    def game_ready(self) -> bool:
+        """Check if all players are ready to play.
+
+        Returns:
+            bool: If all players are ready
+        """
+        # TODO: Implement a logic to determine if players are ready
+        return len(self.players) == 2
 
 
     def next_turn(self):
@@ -61,8 +72,3 @@ class Game:
                 print(f"correct anwser is {self.special_envelope}")
                 print("---NEXT TURN---")
         return game_continues
-
-
-
-
-

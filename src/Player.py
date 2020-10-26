@@ -1,8 +1,17 @@
+import socket
+
 
 class Player:
 
-    def __init__(self, character):
+    def __init__(self, character: str, connection: socket.socket):
+        """Initialize new instance of class Player
+
+        Args:
+            character (str): The player's character
+            connection (socket.socket): The connection with game server
+        """
         self.character = character
+        self.connection = connection
         self.room = "Hallway"
 
     def __str__(self):
