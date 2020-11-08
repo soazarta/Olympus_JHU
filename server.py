@@ -3,7 +3,7 @@ import socket
 
 from _thread import start_new_thread, allocate_lock
 from configurations.helpers import Action, Packet
-from configurations.helpers import load_game_data, process_packet
+from configurations.helpers import process_packet
 from src.Player import Player
 from src.Game import Game
 
@@ -34,14 +34,16 @@ def play_game(game: Game, lock) -> Packet:
     lock.acquire()
     
     current_turn = game.turns.popleft()
-    logging.debug(f"Player {current_turn} is playing ...")
-    
+    turn.data = game.possible_options(current_turn)    
+    logging.debug(f"{current_turn} is playing ...")    
+
     res = process_packet(turn, current_turn.connection)
+    logging.debug(f"{current_turn} played {res.data}")
 
     for player in game.turns:
         process_packet(wait, player.connection)
 
-    logging.debug(f"Player {current_turn} is done playing")
+    logging.debug(f"{current_turn} is done playing")
     game.turns.append(current_turn)
 
     lock.release()
@@ -59,7 +61,7 @@ def handle_client(connection: socket.socket, game: Game, packet: Packet, lock):
         lock: The threading lock object
     """
     player = None
-
+    
     while True:
         if packet.action == Action.Choose_Character:
             # Send a copy of available characters
@@ -73,12 +75,11 @@ def handle_client(connection: socket.socket, game: Game, packet: Packet, lock):
 
             # TODO: Use thread lock to synchronize available characters update
             game.characters = packet.data["characters"]
-            logging.debug(f"Available characters left: {game.characters}")
 
             # Create and add player to game
             player = Player(character, connection)
-            game.players.append(player)
-            game.turns.append(player)
+            if not game.add_player(player):
+                logging.error(f"Unable to add player {character}")
 
             # Check whether enough players have joined
             packet.action = Action.Game_Ready if game.game_ready() else Action.Waiting
@@ -97,7 +98,6 @@ def handle_client(connection: socket.socket, game: Game, packet: Packet, lock):
 
         if packet.action == Action.Game_Ready:
             packet = play_game(game, lock)
-
         
     connection.close()
 
@@ -108,11 +108,8 @@ def handle_clients(s: socket.socket):
     Args:
         s (socket.socket): The communication socket to listen on
     """
-
-    # Game instance setup
     # TODO: Support multiple games at once
-    game_data = load_game_data()
-    game = Game(game_data)
+    game = Game()
 
     # Threading lock
     lock = allocate_lock()

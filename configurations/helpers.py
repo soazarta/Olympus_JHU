@@ -1,11 +1,7 @@
-import json
-import os
 import pickle 
 import socket
 
 from enum import Enum
-from pathlib import Path
-from types import SimpleNamespace
 
 
 # Helper class to define actions between server and client
@@ -16,6 +12,16 @@ class Action(Enum):
     Game_Ready = 4
     Play = 5
     Wait = 6
+
+
+# Helper class to define possible options during player turn
+class Option(Enum):
+    Move_Hallway = "Move to Hallway"
+    Secret_Passage_Make_Suggestion = "Move to Secret Passage & Make Suggestion"
+    Stay_Make_Suggestion = "Stay in Room & Make Suggestion"
+    Move_Room_Make_Suggestion = "Move to Room & Make Suggestion"
+    Make_Accusation = "Make Accusation"
+    Lose_Turn = "Lose Turn"
 
 
 # Packet class for communication between server and client
@@ -37,31 +43,6 @@ def process_packet(packet: Packet, connection: socket.socket) -> Packet:
         packet (Packet): The processed packet
     """
     connection.send(pickle.dumps(packet))    
-    response = connection.recv(1024)
+    response = connection.recv(4096)
 
     return pickle.loads(response)
-
-
-def load_game_data() -> object:
-    """Load game data from database file
-
-    Returns: 
-        object: Game's data object
-    """
-    path = Path(__file__).parent
-
-    # TODO: handle FileNotFoundError exception
-    with open(os.path.join(path, "GameData.json")) as data_file:
-        game_data = vars(json.load(data_file, object_hook=lambda d: SimpleNamespace(**d)))
-
-    # Verify GameData object has all necessary data
-    if "Characters" not in game_data:
-        raise KeyError("GameData missing key: Characters.")
-
-    if "Weapons" not in game_data:
-        raise KeyError("GameData missing key: Weapons.")
-
-    if "Rooms" not in game_data:
-        raise KeyError("GameData missing key: Rooms.")
-
-    return game_data

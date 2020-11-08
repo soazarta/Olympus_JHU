@@ -3,6 +3,7 @@ import socket
 
 from configurations.helpers import Action, Packet
 from configurations.helpers import process_packet
+from src.GamePlay import *
 
 
 HOST = "localhost"
@@ -16,14 +17,14 @@ def handle_server_communications(s: socket.socket):
         s (socket.socket): The communication socket to listen on
     """
     # Initial communication with server
-    response = s.recv(1024)
+    response = s.recv(4096)
     packet = pickle.loads(response)
 
     while True:
         if packet.action == Action.Choose_Character:
             # Display available characters
             characters = packet.data            
-            print("Available characters: ")                
+            print("Available Characters")                
             for character in enumerate(characters, 1):
                 print(character)
 
@@ -52,10 +53,10 @@ def handle_server_communications(s: socket.socket):
 
         if packet.action == Action.Play:
             print(packet.state)
-            # TODO: Game logic to be integrated here
-            input("It's your turn, input something... ")
+            player_move = parse_options(packet.data)
 
             packet.action = Action.Game_Ready
+            packet.data = player_move
             packet = process_packet(packet, s)
 
         if packet.action == Action.Wait:
