@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="MainScreen">
+    <file>clueMainScreen.png</file>
+    <file>clue.jpg</file>
+  </qresource>
+</RCC>

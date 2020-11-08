@@ -1,0 +1,12 @@
+<RCC>
+  <qresource prefix="newPrefix">
+    <file>blankChar.png</file>
+    <file>Characters.jpg</file>
+    <file>ColMustard.jpg</file>
+    <file>LordGreen.jpg</file>
+    <file>MadameWhite.jpg</file>
+    <file>MlleScarlet.jpg</file>
+    <file>ProfPlum.jpg</file>
+    <file>DamePeacock.jpg</file>
+  </qresource>
+</RCC>
