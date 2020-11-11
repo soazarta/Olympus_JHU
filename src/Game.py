@@ -46,6 +46,15 @@ STARTING_POSITION = {"Mrs. White": BALLROOM_KITCHEN, "Mr. Green": CONSERVATORY_B
                      "Mrs. Peacock": LIBRARY_CONSERVATORY, "Professor Plum": STUDY_LIBRARY,
                      "Miss Scarlet": HALL_LOUNGE, "Colonel Mustard": LOUNGE_DINNING}
 
+# Character sprites
+SPRITES = {
+    "Mrs. White": "\u001b[37;1m■\u001b[0m",
+    "Mr. Green": "\u001b[32m■\u001b[0m",
+    "Mrs. Peacock": "\u001b[36m■\u001b[0m",
+    "Professor Plum": "\u001b[35m■\u001b[0m",
+    "Miss Scarlet": "\u001b[31m■\u001b[0m",
+    "Colonel Mustard": "\u001b[33m■\u001b[0m"
+}
 
 # Room class
 class Room:
@@ -164,6 +173,31 @@ class Game:
         state += f"Turn: {self.turns[0] if len(self.turns) > 0 else None}\n"
         #state += f"Board: {self.board}\n"
 
+        sprites = dict.fromkeys(self.board.keys(), " ")
+        for player in self.players:
+            sprites[player.space] = SPRITES[player.character]
+
+        state += f"""
+▄▄▄▄▄▄▄▄▄       ▄▄▄▄▄▄▄▄▄       ▄▄▄▄▄▄▄▄▄
+█Study  █▄▄▄▄▄▄▄█Hall   █▄▄▄▄▄▄▄█Lounge █
+█   {sprites[STUDY]}       {sprites[STUDY_HALL]}       {sprites[HALL]}       {sprites[HALL_LOUNGE]}       {sprites[LOUNGE]}   █
+█      ┌█▀▀▀▀▀▀▀█       █▀▀▀▀▀▀▀█┐      █
+▀▀█   █▀▀       ▀▀█   █▀▀       ▀▀█   █▀▀
+  █ {sprites[STUDY_LIBRARY]} █           █ {sprites[HALL_BILLIARD]} █           █ {sprites[LOUNGE_DINNING]} █
+  █   █           █   █           █   █
+▄▄█   █▄▄       ▄▄█   █▄▄       ▄▄█   █▄▄
+█Library█▄▄▄▄▄▄▄█Billrd █▄▄▄▄▄▄▄█Dining █
+█   {sprites[LIBRARY]}       {sprites[LIBRARY_BILLIARD]}       {sprites[BILLIARD]}       {sprites[BILLIARD_DINNING]}       {sprites[DINNING]}   █
+█       █▀▀▀▀▀▀▀█       █▀▀▀▀▀▀▀█       █
+▀▀█   █▀▀       ▀▀█   █▀▀       ▀▀█   █▀▀
+  █ {sprites[LIBRARY_CONSERVATORY]} █           █ {sprites[BILLIARD_BALLROOM]} █           █ {sprites[DINNING_KITCHEN]} █
+  █   █           █   █           █   █
+▄▄█   █▄▄       ▄▄█   █▄▄       ▄▄█   █▄▄
+█      └█▄▄▄▄▄▄▄█       █▄▄▄▄▄▄▄█┘      █
+█   {sprites[CONSERVATORY]}       {sprites[CONSERVATORY_BALLROOM]}       {sprites[BALLROOM]}       {sprites[BALLROOM_KITCHEN]}       {sprites[KITCHEN]}   █
+█Consrv █▀▀▀▀▀▀▀█Ballrm █▀▀▀▀▀▀▀█Kitchen█
+▀▀▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀
+"""
         return state
 
 

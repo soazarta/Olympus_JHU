@@ -1,3 +1,4 @@
+import os
 import pickle
 import socket
 
@@ -71,6 +72,10 @@ def handle_server_communications(s: socket.socket):
 if __name__ == "__main__":
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((HOST, PORT))
+
+    # Enable colors in the terminal for Windows, no need for Linux/macOS
+    if os.name == "nt":
+        os.system("color")
 
     # Handle server communications
     handle_server_communications(s)
