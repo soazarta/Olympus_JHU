@@ -23,8 +23,8 @@ def handle_server_communications(s: socket.socket):
     while True:
         if packet.action == Action.Choose_Character:
             # Display available characters
-            characters = packet.data            
-            print("Available Characters")                
+            characters = packet.data
+            print("Available Characters")
             for character in enumerate(characters, 1):
                 print(character)
 
@@ -39,15 +39,15 @@ def handle_server_communications(s: socket.socket):
             name = characters.pop(chosen_character)
             packet.action = Action.Ready
             packet.data = {"character": name, "characters": characters}
-            
+
             packet = process_packet(packet, s)
             print("Waiting for other players to join ...")
 
         if packet.action == Action.Waiting:
             # Wait for other players to join
             packet = process_packet(packet, s)
-            
-        if packet.action == Action.Game_Ready:            
+
+        if packet.action == Action.Game_Ready:
             print("Ready to play game!")
             packet = process_packet(packet, s)
 

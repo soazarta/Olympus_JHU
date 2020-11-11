@@ -1,4 +1,4 @@
-import pickle 
+import pickle
 import socket
 
 from enum import Enum
@@ -42,7 +42,7 @@ def process_packet(packet: Packet, connection: socket.socket) -> Packet:
     Returns:
         packet (Packet): The processed packet
     """
-    connection.send(pickle.dumps(packet))    
+    connection.send(pickle.dumps(packet))
     response = connection.recv(4096)
 
     return pickle.loads(response)

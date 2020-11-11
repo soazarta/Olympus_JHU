@@ -26,16 +26,16 @@ def play_game(game: Game, lock) -> Packet:
     """
     # Packet for current player's turn
     turn = Packet(Action.Play, game.game_state(), None)
-    
+
     # Packet for all other players
     wait = Packet(Action.Wait, game.game_state(), None)
 
     # Update next player's turn
     lock.acquire()
-    
+
     current_turn = game.turns.popleft()
-    turn.data = game.possible_options(current_turn)    
-    logging.debug(f"{current_turn} is playing ...")    
+    turn.data = game.possible_options(current_turn)
+    logging.debug(f"{current_turn} is playing ...")
 
     res = process_packet(turn, current_turn.connection)
     logging.debug(f"{current_turn} played {res.data}")
@@ -48,7 +48,7 @@ def play_game(game: Game, lock) -> Packet:
 
     lock.release()
 
-    return res 
+    return res
 
 
 def handle_client(connection: socket.socket, game: Game, packet: Packet, lock):
@@ -61,7 +61,7 @@ def handle_client(connection: socket.socket, game: Game, packet: Packet, lock):
         lock: The threading lock object
     """
     player = None
-    
+
     while True:
         if packet.action == Action.Choose_Character:
             # Send a copy of available characters
@@ -93,12 +93,12 @@ def handle_client(connection: socket.socket, game: Game, packet: Packet, lock):
             if game.game_ready():
                 packet.action = Action.Game_Ready
                 packet.state = game.game_state()
-            
+
             packet = process_packet(packet, connection)
 
         if packet.action == Action.Game_Ready:
             packet = play_game(game, lock)
-        
+
     connection.close()
 
 

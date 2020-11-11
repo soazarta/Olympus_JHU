@@ -200,7 +200,7 @@ class Game:
         player.space = player_position
 
         return True
-        
+
 
     def possible_options(self, player: Player) -> dict:
         """Determine possible options for player's turn
@@ -213,7 +213,7 @@ class Game:
         """
         options = dict()
         space = player.space
-        
+
         # Suggestion are all other players
         temp = [x.character for x in self.players]
         suggestions = set(temp).difference(set(player.character))
@@ -241,7 +241,7 @@ class Game:
             # Check if player was moved
             if player.was_moved:
                 options[Option.Stay_Make_Suggestion] = suggestions
-                
+
         # Player in a hallway options
         else:
             possible_rooms = self.board[space].neighbours
@@ -260,7 +260,7 @@ class Game:
     def update_position(self, player) -> bool:
         """Update player position in board
 
-        Args: 
+        Args:
             player (Player): The player
 
         Returns:

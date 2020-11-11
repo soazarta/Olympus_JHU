@@ -6,7 +6,7 @@ def __make_suggestion(characters: list) -> dict:
     """Handle making a suggestion
 
     Args:
-        characters (list): Available characters 
+        characters (list): Available characters
 
     Returns:
         dict: {"Suspect": character, "Room": room}
@@ -14,9 +14,9 @@ def __make_suggestion(characters: list) -> dict:
     suggestion = dict()
 
     print("Make a suggestion!")
-    
+
     # Choose character
-    print("Available Characters")                
+    print("Available Characters")
     for character in enumerate(characters, 1):
         print(character)
 
@@ -40,7 +40,7 @@ def __make_suggestion(characters: list) -> dict:
         chosen_room = int(chosen_room) - 1
 
     suggestion["Room"] = ROOMS[chosen_room]
-    
+
     return suggestion
 
 
@@ -65,7 +65,7 @@ def __move_room_make_suggestion(data: dict) -> dict:
     Args:
         data (dict): {"Rooms": list, "Suggestions": list}
 
-    Returns: 
+    Returns:
         dict: {"Room": chosen room, "Suggestion": {"Suspect": character, "Room": room}}
     """
     res = dict()
