@@ -13,6 +13,11 @@ def __make_suggestion(characters: list) -> dict:
     """
     suggestion = dict()
 
+    # TODO: For some reason, characters is coming in as a set instead of a
+    # list which breaks this line below:
+    #  >>> suggestion["Suspect"] = characters[chosen_character]
+    characters = list(characters)
+
     print("Make a suggestion!")
 
     # Choose character
