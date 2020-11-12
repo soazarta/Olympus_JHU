@@ -5,64 +5,21 @@ class Player:
 
     def __init__(self, character: str, connection: socket.socket):
         """Initialize new instance of class Player
-
         Args:
             character (str): The player's character
             connection (socket.socket): The connection with game server
         """
         self.character = character
         self.connection = connection
-        self.room = "Hallway"
+        self.space = None # room or hallway
+
+        # Track whether player was moved by another player
+        self.was_moved = False
+
 
     def __str__(self):
-        return self.character
+        return f"{self.character} in {self.space}"
+
 
     def __repr__(self):
-        return self.character
-
-    def suggestion(self,special_envelope):
-        characters = ["Mrs. White", "Mr. Green", "Mrs. Peacock", "Professor Plum", "Miss Scarlet", "Colonel Mustard"]
-        for character in enumerate(characters):
-            print(character)
-        choice = ""
-        while choice not in range(0,6):
-            choice = input("Select a Character to Accuse")
-            if not choice.isdigit():
-                continue
-            choice = int(choice)
-        name = characters[choice]
-
-        print(f"You accuse {name}")
-        weapons = ["Candlestick", "Dagger", "Lead Pipe", "Revolver", "Rope", "Wrench"]
-        for item in enumerate(weapons):
-            print(item)
-        choice = ""
-        while choice not in range(0,6):
-            choice = input("What weapons was used?")
-            if not choice.isdigit():
-                continue
-            choice = int(choice)
-        weapon = weapons[choice]
-        print(f" {name} is accused of using the {weapon} in the {self.room}!")
-        if ([name, weapon, self.room] == special_envelope):
-            print(f" The evidence points that {name} is guilty of using the {weapon} in the {self.room}!")
-            return False
-        else:
-            print("Sorry. That is not correct.")
-            return True
-
-    def travel(self):
-        print("Where would you like to travel?")
-        print(f"You are at {self.room} ")
-        rooms = ["Kitchen", "Ballroom", "Conservatory", "Dining Room", "Cellar", "Billiard Room", "Library",
-                      "Lounge", "Study"]
-        for a in enumerate(rooms):
-            print(a)
-        choice = ""
-        while choice not in range(0,9):
-            choice = input("Please select a room")
-            if not choice.isdigit():
-                continue
-            choice = int(choice)
-        self.room = rooms[choice]
-        print(f'{self.character} moved to {self.room}')
+        return self.__str__()

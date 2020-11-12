@@ -39,7 +39,85 @@
     <widget class="QWidget" name="charSelectWidget_2" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
+       <widget class="ClickableLabel" name="white">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>300</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="../../ClueLessGUI/QTDesigner/Characters.qrc">:/newPrefix/MadameWhite.jpg</pixmap>
+        </property>
+        <property name="scaledContents">
+         <bool>false</bool>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="ClickableLabel" name="green">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>300</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="../../ClueLessGUI/QTDesigner/Characters.qrc">:/newPrefix/LordGreen.jpg</pixmap>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="ClickableLabel" name="peacock">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>300</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="../../ClueLessGUI/QTDesigner/Characters.qrc">:/newPrefix/DamePeacock.jpg</pixmap>
+        </property>
+        <property name="scaledContents">
+         <bool>false</bool>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="ClickableLabel" name="plum">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>300</height>
+         </size>
+        </property>
         <property name="frameShadow">
          <enum>QFrame::Plain</enum>
         </property>
@@ -47,7 +125,7 @@
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="Characters.qrc">:/newPrefix/ProfPlum.jpg</pixmap>
+         <pixmap resource="../../ClueLessGUI/QTDesigner/Characters.qrc">:/newPrefix/ProfPlum.jpg</pixmap>
         </property>
         <property name="scaledContents">
          <bool>false</bool>
@@ -59,40 +137,17 @@
       </item>
       <item>
        <widget class="ClickableLabel" name="scarlet">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>300</height>
+         </size>
+        </property>
         <property name="text">
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="Characters.qrc">:/newPrefix/MlleScarlet.jpg</pixmap>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="ClickableLabel" name="green">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="pixmap">
-         <pixmap resource="Characters.qrc">:/newPrefix/LordGreen.jpg</pixmap>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="ClickableLabel" name="peacock">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="pixmap">
-         <pixmap resource="Characters.qrc">:/newPrefix/DamePeacock.jpg</pixmap>
-        </property>
-        <property name="scaledContents">
-         <bool>false</bool>
+         <pixmap resource="../../ClueLessGUI/QTDesigner/Characters.qrc">:/newPrefix/MlleScarlet.jpg</pixmap>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -101,37 +156,41 @@
       </item>
       <item>
        <widget class="ClickableLabel" name="mustard">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>300</height>
+         </size>
+        </property>
         <property name="text">
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="Characters.qrc">:/newPrefix/ColMustard.jpg</pixmap>
+         <pixmap resource="../../ClueLessGUI/QTDesigner/Characters.qrc">:/newPrefix/ColMustard.jpg</pixmap>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="ClickableLabel" name="white">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="pixmap">
-         <pixmap resource="Characters.qrc">:/newPrefix/MadameWhite.jpg</pixmap>
-        </property>
-        <property name="scaledContents">
-         <bool>false</bool>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
      </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="WaitingAlert">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font: 75 15pt &quot;MS Sans Serif&quot;;
+color:rgb(0, 0, 0)</string>
+     </property>
+     <property name="text">
+      <string>Waiting For Other Players</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
     </widget>
    </item>
    <item>
@@ -155,7 +214,7 @@
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="ClueLessResource.qrc">:/MainScreen/clueMainScreen.png</pixmap>
+         <pixmap resource="../../ClueLessGUI/QTDesigner/ClueLessResource.qrc">:/MainScreen/clueMainScreen.png</pixmap>
         </property>
         <property name="scaledContents">
          <bool>true</bool>
@@ -183,24 +242,24 @@
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">font: 75 8pt &quot;MS Sans Serif&quot;;
+         <string notr="true">font: 75 15pt &quot;MS Sans Serif&quot;;
 color:rgb(255, 255, 255)</string>
         </property>
         <property name="text">
-         <string>Display Character Info here.</string>
+         <string>Select Your Character</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignHCenter|Qt::AlignTop</set>
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
-      <item>
+      <item alignment="Qt::AlignBottom">
        <widget class="QPushButton" name="pushButton">
         <property name="styleSheet">
          <string notr="true">background-color: rgb(255, 255, 255);</string>
         </property>
         <property name="text">
-         <string>Start the Game!</string>
+         <string>Select Character</string>
         </property>
        </widget>
       </item>
@@ -217,8 +276,8 @@ color:rgb(255, 255, 255)</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="Characters.qrc"/>
-  <include location="ClueLessResource.qrc"/>
+  <include location="../../ClueLessGUI/QTDesigner/Characters.qrc"/>
+  <include location="../../ClueLessGUI/QTDesigner/ClueLessResource.qrc"/>
  </resources>
  <connections/>
 </ui>

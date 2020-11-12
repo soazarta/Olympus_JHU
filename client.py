@@ -1,5 +1,7 @@
 import pickle
 import socket
+import MainWindow
+import GUIStatus
 
 from configurations.helpers import Action, Packet
 from configurations.helpers import process_packet
@@ -9,17 +11,22 @@ HOST = "localhost"
 PORT = 54321
 
 
-def handle_server_communications(s: socket.socket):
+def handle_server_communications(s: socket.socket, gui: MainWindow.MainWindow):
     """Handle all incoming and outgoing communications with server
 
     Args:
         s (socket.socket): The communication socket to listen on
+        gui (MainWindow.mainwindow): The client GUI that acts on packets
     """
     # Initial communication with server
     response = s.recv(1024)
     packet = pickle.loads(response)
-
+    # Wait for user to start the game
+    while gui.start is not True:
+        pass
     while True:
+        gui.packetHandler(packet)
+        '''
         if packet.action == Action.Choose_Character:
             # Display available characters
             characters = packet.data            
@@ -62,8 +69,7 @@ def handle_server_communications(s: socket.socket):
             # Wait for other players' turn
             packet.action = Action.Game_Ready
             packet = process_packet(packet, s)
-
-
+        '''
     s.close()
 
 
@@ -73,3 +79,4 @@ if __name__ == "__main__":
 
     # Handle server communications
     handle_server_communications(s)
+
