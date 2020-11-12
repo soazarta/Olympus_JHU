@@ -14,6 +14,7 @@ import socket
 import threading
 import time
 import src.Game as Game
+from src.GamePlay import *
 
 HOST = "localhost"
 PORT = 54321
@@ -127,11 +128,11 @@ class MainWindow(QMainWindow):
 
             if packet.action == Action.Play:
                 print(packet.state)
-                # TODO: Game logic to be integrated here
-                input("It's your turn, input something... ")
+                player_move = parse_options(packet.data)
 
                 packet.action = Action.Game_Ready
-                packet = process_packet(packet, socket)
+                packet.data = player_move
+                packet = process_packet(packet, s)
 
             if packet.action == Action.Wait:
                 # Wait for other players' turn
@@ -143,12 +144,13 @@ if __name__ == "__main__":
     # Create MainWindow
     app = QApplication(sys.argv)
     # Create Socket
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((HOST, PORT))
+    #s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #s.connect((HOST, PORT))
     mainwindow = MainWindow()
+    mainwindow.boardWindow.show()
     # Start Client Thread
-    x = threading.Thread(target=mainwindow.packetHandler, args=(s,))
-    x.start()
+    #x = threading.Thread(target=mainwindow.packetHandler, args=(s,))
+    #x.start()
     # Run the client GUI
     mainwindow.show()
     sys.exit(app.exec_())
