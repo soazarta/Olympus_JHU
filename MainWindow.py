@@ -16,16 +16,39 @@ import time
 import src.Game as Game
 from src.GamePlay import *
 
+
 HOST = "localhost"
 PORT = 54321
 
 
 class GameBoard(QWidget):
+    waitingScreen = []
+    movie = []
+    waiting = False
 
     def __init__(self):
         super().__init__()
         uic.loadUi("QTDesigner/GameBoard.ui", self)
         self.setFixedSize(self.size())
+        self.movie = QMovie("QTDesigner/ClueLoadingScreen.gif")
+        self.waitingScreen = QLabel()
+        self.waitingScreen.setMovie(self.movie)
+        # creating a timer object
+        self.timer = QTimer()
+        # adding action to timer
+        self.timer.timeout.connect(self.Waiting)
+        # update the timer every tenth second
+        self.timer.start(100)
+
+    def Waiting(self):
+        if self.waiting:
+            self.movie.start()
+            self.waitingScreen.show()
+        elif not self.waiting:
+            self.movie.stop()
+            self.waitingScreen.hide()
+
+
 
 
 class CharacterSelect(QWidget):
@@ -95,11 +118,16 @@ class MainWindow(QMainWindow):
         self.characterWindow.show()
 
     def packetHandler(self, socket):
-        response = s.recv(4096)
+        response = socket.recv(16384)
         packet = pickle.loads(response)
         while self.start is not True:
             pass
         while True:
+            # The game has started
+            if self.displayBoard:
+                # Re-paint the board every turn
+                self.boardWindow.Board.updateChars(packet.state)
+
             if packet.action == Action.Choose_Character:
                 # Display available characters
                 characters = packet.data
@@ -114,43 +142,53 @@ class MainWindow(QMainWindow):
                 packet = process_packet(packet, socket)
                 print("Waiting for other players to join ...")
 
-            if packet.action == Action.Waiting:
-                # Wait for other players to join
+            elif packet.action == Action.Waiting:
+                # Wait for other players' turn
                 packet = process_packet(packet, socket)
 
-            if packet.action == Action.Game_Ready:
+            elif packet.action == Action.Game_Ready:
                 print("Ready to play game!")
                 # Clean up character select
                 self.displayBoard = True
-                time.sleep(.1)
+                time.sleep(.2)
                 self.characterWindow.close()
                 packet = process_packet(packet, socket)
 
-            if packet.action == Action.Play:
-                print(packet.state)
+            elif packet.action == Action.Play:
+                if self.boardWindow.waiting:
+                    self.boardWindow.waiting = False
+                #print(packet.state)
                 player_move = parse_options(packet.data)
 
                 packet.action = Action.Game_Ready
                 packet.data = player_move
-                packet = process_packet(packet, s)
-
-            if packet.action == Action.Wait:
-                # Wait for other players' turn
-                packet.action = Action.Game_Ready
                 packet = process_packet(packet, socket)
 
+            elif packet.action == Action.Wait:
+                print("Waiting for other players to finish their turns...")
+                if self.displayBoard:
+                    self.boardWindow.waiting = True
+                packet.action = Action.Game_Ready
+                packet = process_packet(packet, socket)
+            else:
+                print("Invalid Action")
+                print(packet.action)
 
-if __name__ == "__main__":
+
+def main():
     # Create MainWindow
     app = QApplication(sys.argv)
     # Create Socket
-    #s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    #s.connect((HOST, PORT))
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((HOST, PORT))
     mainwindow = MainWindow()
-    mainwindow.boardWindow.show()
     # Start Client Thread
-    #x = threading.Thread(target=mainwindow.packetHandler, args=(s,))
-    #x.start()
+    x = threading.Thread(target=mainwindow.packetHandler, args=(s,))
+    x.start()
     # Run the client GUI
     mainwindow.show()
-    sys.exit(app.exec_())
+    app.exec()
+
+
+if __name__ == "__main__":
+    main()

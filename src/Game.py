@@ -163,6 +163,7 @@ class Game:
         Returns:
             str: description of current game state
         """
+        '''
         state = "Game State\n"
         state += f"Players: {self.players}\n"
         state += f"Turn: {self.turns[0] if len(self.turns) > 0 else None}\n"
@@ -193,6 +194,11 @@ class Game:
 █Consrv █▀▀▀▀▀▀▀█Ballrm █▀▀▀▀▀▀▀█Kitchen█
 ▀▀▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀       ▀▀▀▀▀▀▀▀▀
 """
+'''
+        state = ""
+        for p in self.players:
+            state += p.__str__()
+            state += "\n"
         return state
 
 

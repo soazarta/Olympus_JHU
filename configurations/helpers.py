@@ -26,6 +26,7 @@ class Option(Enum):
 
 # Packet class for communication between server and client
 class Packet:
+
     def __init__(self, action: Action, state: str, data: object):
         self.action = action
         self.state = state
@@ -41,6 +42,6 @@ def process_packet(packet: Packet, connection: socket.socket) -> Packet:
         packet (Packet): The processed packet
     """
     connection.send(pickle.dumps(packet))
-    response = connection.recv(4096)
+    response = connection.recv(16384)
 
     return pickle.loads(response)

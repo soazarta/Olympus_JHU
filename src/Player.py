@@ -18,7 +18,7 @@ class Player:
 
 
     def __str__(self):
-        return f"{self.character} in {self.space}"
+        return f"{self.character}:{self.space}"
 
 
     def __repr__(self):

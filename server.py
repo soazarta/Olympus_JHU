@@ -26,19 +26,19 @@ def play_game(game: Game, lock) -> Packet:
 
     # Packet for all other players
     wait = Packet(Action.Wait, game.game_state(), None)
-
+    # Give player data to repaint GUI
     # Update next player's turn
     lock.acquire()
 
     current_turn = game.turns.popleft()
+    for player in game.turns:
+        process_packet(wait, player.connection)
+
     turn.data = game.possible_options(current_turn)
     logging.debug(f"{current_turn} is playing ...")
 
     res = process_packet(turn, current_turn.connection)
     logging.debug(f"{current_turn} played {res.data}")
-
-    for player in game.turns:
-        process_packet(wait, player.connection)
 
     logging.debug(f"{current_turn} is done playing")
     game.turns.append(current_turn)
