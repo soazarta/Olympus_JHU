@@ -3,10 +3,11 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
 
+
 class ClueBoard(QWidget):
     chars = []
     CharacterColors = {
-        "Mrs. White": Qt.white,
+        "Mrs. White": Qt.gray,
         "Mr. Green": Qt.green,
         "Mrs. Peacock": Qt.blue,
         "Professor Plum": QColor(220, 42, 255),
@@ -39,15 +40,12 @@ class ClueBoard(QWidget):
 
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
-        chars = []
 
     def updateChars(self, state: str):
         allChars = state.splitlines()
         for s in allChars:
             self.chars.append(s.split(':'))
         print(self.chars)
-
-
 
     def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
         painter = QPainter(self)

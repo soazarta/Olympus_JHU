@@ -6,19 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1171</width>
-    <height>846</height>
+    <width>1192</width>
+    <height>895</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
+   <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
   <property name="maximumSize">
    <size>
-    <width>2118</width>
+    <width>2500</width>
     <height>1518</height>
    </size>
   </property>
@@ -63,23 +63,41 @@
          <enum>QLayout::SetMinimumSize</enum>
         </property>
         <item>
-         <widget class="QToolButton" name="toolButton">
+         <widget class="QPushButton" name="MakeSuggestion">
           <property name="text">
-           <string>...</string>
+           <string>Move and Make a Suggestion</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="MakeAccusation">
           <property name="text">
-           <string>PushButton</string>
+           <string>Make an Accusation</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_2">
+         <widget class="QLabel" name="CharAvatar">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>100</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="text">
-           <string>PushButton</string>
+           <string/>
+          </property>
+          <property name="pixmap">
+           <pixmap resource="ClueLessResource.qrc">:/MainScreen/clueMainScreen.png</pixmap>
+          </property>
+          <property name="scaledContents">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -100,6 +118,7 @@
  </customwidgets>
  <resources>
   <include location="GameBoard.qrc"/>
+  <include location="ClueLessResource.qrc"/>
  </resources>
  <connections/>
 </ui>

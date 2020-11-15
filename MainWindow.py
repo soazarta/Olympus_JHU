@@ -15,6 +15,7 @@ import threading
 import time
 import src.Game as Game
 from src.GamePlay import *
+import ChoiceDialog
 
 
 HOST = "localhost"
@@ -25,6 +26,18 @@ class GameBoard(QWidget):
     waitingScreen = []
     movie = []
     waiting = False
+    input = False
+    currentOptions = []
+    res = dict()
+    charAvatar = {
+        "Mrs. White": "QTDesigner/MadameWhite.jpg",
+        "Mr. Green": "QTDesigner/LordGreen.jpg",
+        "Mrs. Peacock": "QTDesigner/DamePeacock.jpg",
+        "Professor Plum": "QTDesigner/ProfPlum.jpg",
+        "Miss Scarlet": "QTDesigner/MlleScarlet.jpg",
+        "Colonel Mustard": "QTDesigner/ColMustard.jpg"
+    }
+
 
     def __init__(self):
         super().__init__()
@@ -39,14 +52,48 @@ class GameBoard(QWidget):
         self.timer.timeout.connect(self.Waiting)
         # update the timer every tenth second
         self.timer.start(100)
+        self.MakeAccusation.clicked.connect(self.makeAccusation)
+        self.MakeSuggestion.clicked.connect(self.makeSuggestion)
+
+    def setAvatar(self, character):
+        pixMap = QPixmap(self.charAvatar[character])
+        self.CharAvatar.setPixmap(pixMap)
 
     def Waiting(self):
         if self.waiting:
             self.movie.start()
             self.waitingScreen.show()
+            self.setEnabled(False)
         elif not self.waiting:
             self.movie.stop()
             self.waitingScreen.hide()
+            self.setEnabled(True)
+
+    def getMove(self, options) -> dict:
+        # Set current options
+        self.currentOptions = options
+        while not self.input:
+            pass
+        self.input = False
+        return self.res
+
+    def makeSuggestion(self):
+        rooms = self.currentOptions[Option.Move_Room_Make_Suggestion]["Rooms"]
+        suggestions = self.currentOptions[Option.Move_Room_Make_Suggestion]["Suggestions"]
+        b = ChoiceDialog.ChoiceDialog(rooms, suggestions)
+        b.exec()
+        print("!!!!!!!")
+        print(b.charCombo.currentText())
+        print(b.roomCombo.currentText())
+        print(b.allRooms.currentText())
+        print("!!!!!!!")
+        self.res["Room"] = b.roomCombo.currentText()
+        self.res["Suggestion"] = {"Suspect": b.charCombo.currentText(), "Room": b.allRooms.currentText()}
+        self.input = True
+
+    def makeAccusation(self):
+        print("Make Accusation")
+        self.input = True
 
 
 
@@ -137,6 +184,7 @@ class MainWindow(QMainWindow):
                     pass
                 # Update packet with character choice
                 characters.remove(self.characterWindow.selected)
+                self.boardWindow.setAvatar(self.characterWindow.selected)
                 packet.action = Action.Ready
                 packet.data = {"character": self.characterWindow.selected, "characters": characters}
                 packet = process_packet(packet, socket)
@@ -158,7 +206,8 @@ class MainWindow(QMainWindow):
                 if self.boardWindow.waiting:
                     self.boardWindow.waiting = False
                 #print(packet.state)
-                player_move = parse_options(packet.data)
+                player_move = self.boardWindow.getMove(packet.data)
+                #player_move = parse_options(packet.data)
 
                 packet.action = Action.Game_Ready
                 packet.data = player_move
