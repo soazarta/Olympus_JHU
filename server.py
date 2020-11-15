@@ -1,126 +1,101 @@
 import logging
+import pickle
+import select
 import socket
+import time
+from typing import Dict, List
 
-from _thread import start_new_thread, allocate_lock
-from configurations.helpers import Action, Packet
-from configurations.helpers import process_packet
-from src.Player import Player
+from src.constants import CHARACTERS
+from src.messages import *
 from src.Game import Game
+from src.validator import get_options, validate
 
 logging.basicConfig(level=logging.DEBUG)
 
 HOST = "localhost"
 PORT = 54321
 
+MAX_PLAYERS = 2
 
-def play_game(game: Game, lock) -> Packet:
-    """Handle players' turns during gameplay
+
+def handle_game(players: Dict[str, socket.socket]) -> None:
+    """Start and handle a game instance
     Args:
-        game (Game): The game instance
-        lock: The threading lock object
-    Returns:
-        The packet
+        players (Dict[str, socket.socket]): Mapping of character names to
+            connections
     """
-    # Packet for current player's turn
-    turn = Packet(Action.Play, game.game_state(), None)
+    game = Game(players)
 
-    # Packet for all other players
-    wait = Packet(Action.Wait, game.game_state(), None)
-    # Give player data to repaint GUI
-    # Update next player's turn
-    lock.acquire()
+    logging.debug(f"Case: {game.case}")
 
-    current_turn = game.turns.popleft()
-    for player in game.turns:
-        process_packet(wait, player.connection)
+    while not game.over:
+        options = get_options(game, game.current)
+        logging.debug(f"Options for {game.current.name}: {list(options.keys())}")
+        request = {"type": OPTIONS, "data": options}
+        pickled = pickle.dumps(request)
+        time.sleep(.5)
+        game.current.connection.sendall(pickled)
 
-    turn.data = game.possible_options(current_turn)
-    logging.debug(f"{current_turn} is playing ...")
+        played = False
+        while True:
+            readable, _, _ = select.select(game.players, [], [])
 
-    res = process_packet(turn, current_turn.connection)
-    logging.debug(f"{current_turn} played {res.data}")
-
-    logging.debug(f"{current_turn} is done playing")
-    game.turns.append(current_turn)
-
-    lock.release()
-
-    return res
-
-
-def handle_client(connection: socket.socket, game: Game, packet: Packet, lock):
-    """Handle client communications
-    Args:
-        connection (socket.socket): The client connection
-        game (Game): The game isntance
-        packet (Packet): The socket communication packet
-        lock: The threading lock object
-    """
-    player = None
-
-    while True:
-        if packet.action == Action.Choose_Character:
-            # Send a copy of available characters
-            packet.data = game.characters
-            packet = process_packet(packet, connection)
-
-        if packet.action == Action.Ready:
-            # Update available characters
-            character = packet.data["character"]
-            logging.debug(f"Player {character} has joined")
-
-            # TODO: Use thread lock to synchronize available characters update
-            game.characters = packet.data["characters"]
-
-            # Create and add player to game
-            player = Player(character, connection)
-            if not game.add_player(player):
-                logging.error(f"Unable to add player {character}")
-
-            # Check whether enough players have joined
-            packet.action = Action.Game_Ready if game.game_ready() else Action.Waiting
-            packet.state = game.game_state()
-            packet.data = None
-
-            packet = process_packet(packet, connection)
-
-        if packet.action == Action.Waiting:
-            # Continue to wait until game is ready
-            if game.game_ready():
-                packet.action = Action.Game_Ready
-                packet.state = game.game_state()
-
-            packet = process_packet(packet, connection)
-
-        if packet.action == Action.Game_Ready:
-            packet = play_game(game, lock)
-
-    connection.close()
+            for player in readable:
+                if player == game.current:
+                    data = pickle.loads(player.connection.recv(4096))
+                    validate(game, player, data)
+                    logging.debug("Validated move")
+                    game.play(player, data)
+                    played = True
+                else:
+                    # TODO: Handle if another client sends out of order
+                    pass
+            if played:
+                break
 
 
-def handle_clients(s: socket.socket):
-    """Handle clients communication with game server
+def handle_clients(s: socket.socket) -> None:
+    """Handle clients communication with game server.
     Args:
         s (socket.socket): The communication socket to listen on
     """
-    # TODO: Support multiple games at once
-    game = Game()
 
-    # Threading lock
-    lock = allocate_lock()
+    players = dict.fromkeys(CHARACTERS)  # type: Dict[str, socket.socket]
+    connections = []  # type: List[socket.socket]
 
     while True:
-        connection, address = s.accept()
-        client_id = address[1]
-        logging.debug(f"Connected to client: {str(client_id)}")
+        # If 2 players have selected their character, start game
+        if len([conn for _, conn in players.items() if conn]) == MAX_PLAYERS:
+            # TODO: Add a thread for each game, take players out of connections
+            handle_game(players)
+            s.close()
+            return
 
-        # Pass initial packet to new client
-        packet = Packet(Action.Choose_Character, game.game_state(), None)
+        # Listen on the socket for new connections and the list of players
+        rlist = [s] + connections
+        readable, _, _ = select.select(rlist, [], [])
 
-        # Handle each client's communication on a new thread
-        start_new_thread(handle_client, (connection, game, packet, lock,))
+        for fd in readable:
+            if fd in connections:
+                data = fd.recv(1024).decode()
+                logging.debug(f"Received: {data}")
+                if data:
+                    # Character selection
+                    if data in CHARACTERS and players[data] == None:
+                        logging.debug(f"{data} has joined!")
+                        players[data] = fd
+                else:
+                    connections.remove(fd)
+                    fd.close()
 
-    s.close()
+            elif fd is s:
+                connection, address = s.accept()
+                connections.append(connection)
+                logging.debug(f"Connection from {address[0]}:{address[1]}")
+
+                # Send the new connection the character list
+                data = pickle.dumps([character for character, connection in players.items() if not connection])
+                connection.sendall(data)
 
 
 if __name__ == "__main__":
@@ -132,5 +107,5 @@ if __name__ == "__main__":
 
     logging.debug(f"Listening on {HOST}:{PORT}")
 
-    # Handle clients connections
+    # Handle client connections
     handle_clients(s)

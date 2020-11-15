@@ -63,16 +63,12 @@
          <enum>QLayout::SetMinimumSize</enum>
         </property>
         <item>
-         <widget class="QPushButton" name="MakeSuggestion">
-          <property name="text">
-           <string>Move and Make a Suggestion</string>
-          </property>
-         </widget>
+         <widget class="QComboBox" name="OptionCombo"/>
         </item>
         <item>
-         <widget class="QPushButton" name="MakeAccusation">
+         <widget class="QPushButton" name="LockIn">
           <property name="text">
-           <string>Make an Accusation</string>
+           <string>Lock In Action</string>
           </property>
          </widget>
         </item>

@@ -9,13 +9,15 @@ from QTRecources import Title_rc
 from QTRecources import GameBoard_rc
 from clickablelabel import *
 from clueboard import *
-from configurations.helpers import *
 import socket
 import threading
 import time
 import src.Game as Game
-from src.GamePlay import *
 import ChoiceDialog
+import pickle
+
+from src.messages import *
+from src.options import *
 
 
 HOST = "localhost"
@@ -25,10 +27,13 @@ PORT = 54321
 class GameBoard(QWidget):
     waitingScreen = []
     movie = []
-    waiting = False
+    waiting = True
     input = False
+    chosenAction = None
+    response = None
     currentOptions = []
     res = dict()
+    currentData = []
     charAvatar = {
         "Mrs. White": "QTDesigner/MadameWhite.jpg",
         "Mr. Green": "QTDesigner/LordGreen.jpg",
@@ -52,22 +57,22 @@ class GameBoard(QWidget):
         self.timer.timeout.connect(self.Waiting)
         # update the timer every tenth second
         self.timer.start(100)
-        self.MakeAccusation.clicked.connect(self.makeAccusation)
-        self.MakeSuggestion.clicked.connect(self.makeSuggestion)
+        self.LockIn.clicked.connect(self.SetAction)
 
     def setAvatar(self, character):
         pixMap = QPixmap(self.charAvatar[character])
         self.CharAvatar.setPixmap(pixMap)
 
     def Waiting(self):
-        if self.waiting:
-            self.movie.start()
-            self.waitingScreen.show()
-            self.setEnabled(False)
-        elif not self.waiting:
-            self.movie.stop()
-            self.waitingScreen.hide()
-            self.setEnabled(True)
+        if self.isVisible():
+            if self.waiting:
+                self.movie.start()
+                self.waitingScreen.show()
+                self.setEnabled(False)
+            elif not self.waiting:
+                self.movie.stop()
+                self.waitingScreen.hide()
+                self.setEnabled(True)
 
     def getMove(self, options) -> dict:
         # Set current options
@@ -77,7 +82,53 @@ class GameBoard(QWidget):
         self.input = False
         return self.res
 
-    def makeSuggestion(self):
+    def SetAction(self):
+        option = self.OptionCombo.currentText()
+
+        if option == MOVE:
+            b = ChoiceDialog.ChoiceDialog(self.currentData[option])
+            b.exec()
+            self.response = Move(b.roomCombo.currentText())
+        '''
+        if option == SUGGESTION:
+            character = menu("Character?", data[option]["characters"])
+            weapon = menu("Weapon?", data[option]["weapons"])
+            # Can only accuse in the room you're in, sending data anyways
+            room = data[option]["rooms"]
+            self.response = Suggestion(character, weapon, room)
+
+        if option == ACCUSATION:
+            character = menu("Character?", data[option]["characters"])
+            weapon = menu("Weapon?", data[option]["weapons"])
+            room = menu("Room?", data[option]["rooms"])
+            self.response = Accusation(character, weapon, room)
+
+        if option == SHOW_CARD:
+            if not data[option]["cards"]:
+                print("No matching cards to show")
+                self.response = ShowCard(None)
+            else:
+                card = menu(f"Card to show to {data[option]['player']}", data[option]["cards"])
+                self.response = ShowCard(card)
+
+        if option == END:
+            self.response = End()
+        '''
+
+    def PopulateOptions(self, data):
+        self.currentData = data
+        options = list(data.keys())
+        self.response = None
+        self.OptionCombo.clear()
+        for o in options:
+            self.OptionCombo.addItem(o)
+
+    def getResponse(self) -> str:
+        while self.response is None:
+            pass
+        return self.response
+
+        '''
         rooms = self.currentOptions[Option.Move_Room_Make_Suggestion]["Rooms"]
         suggestions = self.currentOptions[Option.Move_Room_Make_Suggestion]["Suggestions"]
         b = ChoiceDialog.ChoiceDialog(rooms, suggestions)
@@ -90,12 +141,7 @@ class GameBoard(QWidget):
         self.res["Room"] = b.roomCombo.currentText()
         self.res["Suggestion"] = {"Suspect": b.charCombo.currentText(), "Room": b.allRooms.currentText()}
         self.input = True
-
-    def makeAccusation(self):
-        print("Make Accusation")
-        self.input = True
-
-
+        '''
 
 
 class CharacterSelect(QWidget):
@@ -164,65 +210,56 @@ class MainWindow(QMainWindow):
         self.start = True
         self.characterWindow.show()
 
-    def packetHandler(self, socket):
-        response = socket.recv(16384)
-        packet = pickle.loads(response)
+    def packetHandler(self, socket: socket.socket):
+        # Wait for player to start game
         while self.start is not True:
             pass
-        while True:
+        # Select Character
+        data = pickle.loads(socket.recv(1024))
+        # Display available characters
+        characters = data
+        self.characterWindow.updateChars(characters)
+        # Wait for user to select character
+        while not self.characterWindow.charLocked:
+            pass
+        # Update packet with character choice
+        # TODO: Verify that the chosen character wasn't taken in waiting. Server
+        # sends OK response maybe?
+
+        # Send back our choice
+        socket.sendall(self.characterWindow.selected.encode())
+        self.boardWindow.setAvatar(self.characterWindow.selected)
+        unpickled = pickle.loads(socket.recv(4096))
+        while unpickled:
+            header = unpickled["type"]
+            data = unpickled["data"]
             # The game has started
-            if self.displayBoard:
-                # Re-paint the board every turn
-                self.boardWindow.Board.updateChars(packet.state)
+            if header in [STATE, INFO]:
+                if header == INFO:
+                    if data == "Starting Game!":
+                        # Begin Receiving Moves
+                        self.displayBoard = True
+                        time.sleep(.5)
+                        self.characterWindow.close()
+                    else:
+                        print(data)
+                else:
+                    # Re-paint the board with new state
+                    self.boardWindow.Board.updateChars(data)
+            if header == GAME_OVER:
+                print(data)
+                socket.close()
+                return
+            if header == OPTIONS:
+                self.boardWindow.waiting = False
+                self.boardWindow.PopulateOptions(data)
+                # Wait for GUI response to chosen option
+                response = self.boardWindow.getResponse()
+                self.boardWindow.waiting = True
+                pickled = pickle.dumps(response)
+                socket.sendall(pickled)
 
-            if packet.action == Action.Choose_Character:
-                # Display available characters
-                characters = packet.data
-                self.characterWindow.updateChars(characters)
-                # Wait for user to select character
-                while not self.characterWindow.charLocked:
-                    pass
-                # Update packet with character choice
-                characters.remove(self.characterWindow.selected)
-                self.boardWindow.setAvatar(self.characterWindow.selected)
-                packet.action = Action.Ready
-                packet.data = {"character": self.characterWindow.selected, "characters": characters}
-                packet = process_packet(packet, socket)
-                print("Waiting for other players to join ...")
-
-            elif packet.action == Action.Waiting:
-                # Wait for other players' turn
-                packet = process_packet(packet, socket)
-
-            elif packet.action == Action.Game_Ready:
-                print("Ready to play game!")
-                # Clean up character select
-                self.displayBoard = True
-                time.sleep(.2)
-                self.characterWindow.close()
-                packet = process_packet(packet, socket)
-
-            elif packet.action == Action.Play:
-                if self.boardWindow.waiting:
-                    self.boardWindow.waiting = False
-                #print(packet.state)
-                player_move = self.boardWindow.getMove(packet.data)
-                #player_move = parse_options(packet.data)
-
-                packet.action = Action.Game_Ready
-                packet.data = player_move
-                packet = process_packet(packet, socket)
-
-            elif packet.action == Action.Wait:
-                print("Waiting for other players to finish their turns...")
-                if self.displayBoard:
-                    self.boardWindow.waiting = True
-                packet.action = Action.Game_Ready
-                packet = process_packet(packet, socket)
-            else:
-                print("Invalid Action")
-                print(packet.action)
-
+            unpickled = pickle.loads(socket.recv(4096))
 
 def main():
     # Create MainWindow
