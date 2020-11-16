@@ -50,7 +50,11 @@ class GameBoard(QWidget):
         self.setFixedSize(self.size())
         self.movie = QMovie("QTDesigner/ClueLoadingScreen.gif")
         self.waitingScreen = QLabel()
+        self.waitingScreen.setAlignment(Qt.AlignHCenter)
         self.waitingScreen.setMovie(self.movie)
+        self.waitingText = QLabel()
+        self.waitingText.setAlignment(Qt.AlignHCenter)
+        self.waitingText.setText("Waiting for Other Player's Turn")
         # creating a timer object
         self.timer = QTimer()
         # adding action to timer
@@ -67,11 +71,25 @@ class GameBoard(QWidget):
         if self.isVisible():
             if self.waiting:
                 self.movie.start()
+                # Show Waiting Widgets
                 self.waitingScreen.show()
+                self.waitingText.show()
+                self.layout().replaceWidget(self.Board, self.waitingScreen)
+                self.layout().replaceWidget(self.ToolBar, self.waitingText)
+                # Hide action widgets
+                self.Board.hide()
+                self.ToolBar.hide()
                 self.setEnabled(False)
             elif not self.waiting:
                 self.movie.stop()
+                # Hide Waiting Widgets
                 self.waitingScreen.hide()
+                self.waitingText.hide()
+                # Show Action Widgets
+                self.Board.show()
+                self.ToolBar.show()
+                self.layout().replaceWidget(self.waitingScreen, self.Board)
+                self.layout().replaceWidget(self.waitingText, self.ToolBar)
                 self.setEnabled(True)
 
     def getMove(self, options) -> dict:
@@ -86,34 +104,42 @@ class GameBoard(QWidget):
         option = self.OptionCombo.currentText()
 
         if option == MOVE:
-            b = ChoiceDialog.ChoiceDialog(self.currentData[option])
+            b = ChoiceDialog.ChoiceDialog("Choose a Room or Hallway to move to.", self.currentData[option])
             b.exec()
             self.response = Move(b.roomCombo.currentText())
-        '''
+
         if option == SUGGESTION:
-            character = menu("Character?", data[option]["characters"])
-            weapon = menu("Weapon?", data[option]["weapons"])
+            b = ChoiceDialog.ChoiceDialog("Choose a Character and a Weapon.", None, self.currentData[option]["characters"],
+                                          self.currentData[option]["weapons"])
+            b.exec()
+            character = b.charCombo.currentText()
+            weapon = b.weaponCombo.currentText()
             # Can only accuse in the room you're in, sending data anyways
-            room = data[option]["rooms"]
+            room = self.currentData[option]["rooms"]
             self.response = Suggestion(character, weapon, room)
 
         if option == ACCUSATION:
-            character = menu("Character?", data[option]["characters"])
-            weapon = menu("Weapon?", data[option]["weapons"])
-            room = menu("Room?", data[option]["rooms"])
+            b = ChoiceDialog.ChoiceDialog("Choose a Room, a Character, and a Weapon.", self.currentData[option]["rooms"], self.currentData[option]["characters"],
+                                          self.currentData[option]["weapons"])
+            b.exec()
+            character = b.charCombo.currentText()
+            weapon = b.weaponCombo.currentText()
+            room = b.roomCombo.currentText()
             self.response = Accusation(character, weapon, room)
 
         if option == SHOW_CARD:
-            if not data[option]["cards"]:
-                print("No matching cards to show")
+            if not self.currentData[option]["cards"]:
+                b = ChoiceDialog.ChoiceDialog("No matching cards to show")
+                b.exec()
                 self.response = ShowCard(None)
             else:
-                card = menu(f"Card to show to {data[option]['player']}", data[option]["cards"])
-                self.response = ShowCard(card)
+                b = ChoiceDialog.ChoiceDialog(f"Choose a card to show to {self.currentData[option]['player']}", None, None, None, self.currentData[option]["cards"])
+                b.exec()
+                self.response = ShowCard(b.cardsCombo.currentText())
 
         if option == END:
             self.response = End()
-        '''
+
 
     def PopulateOptions(self, data):
         self.currentData = data
@@ -128,21 +154,6 @@ class GameBoard(QWidget):
             pass
         return self.response
 
-        '''
-        rooms = self.currentOptions[Option.Move_Room_Make_Suggestion]["Rooms"]
-        suggestions = self.currentOptions[Option.Move_Room_Make_Suggestion]["Suggestions"]
-        b = ChoiceDialog.ChoiceDialog(rooms, suggestions)
-        b.exec()
-        print("!!!!!!!")
-        print(b.charCombo.currentText())
-        print(b.roomCombo.currentText())
-        print(b.allRooms.currentText())
-        print("!!!!!!!")
-        self.res["Room"] = b.roomCombo.currentText()
-        self.res["Suggestion"] = {"Suspect": b.charCombo.currentText(), "Room": b.allRooms.currentText()}
-        self.input = True
-        '''
-
 
 class CharacterSelect(QWidget):
     selected = ""
@@ -151,7 +162,7 @@ class CharacterSelect(QWidget):
     def __init__(self):
         super().__init__()
         uic.loadUi("QTDesigner/CharacterSelect.ui", self)
-
+        self.setFixedSize(self.size())
         # Find all clickable labels and load in Character names
         self.availableChars = Game.CHARACTERS
         cnt = 0
@@ -190,6 +201,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         uic.loadUi("QTDesigner/Clue-Less.ui", self)
+        self.setFixedSize(self.size())
         self.boardWindow = GameBoard()
         self.characterWindow = CharacterSelect()
         self.pushButton.clicked.connect(self.buttonPressed)

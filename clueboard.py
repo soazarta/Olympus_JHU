@@ -32,7 +32,7 @@ class ClueBoard(QWidget):
         "Lounge-Dinning": (995, 185),
         "Library-Billiard": (320, 320),
         "Library-Conservatory": (95, 465),
-        "Billiard_Ballroom": (545, 465),
+        "Billiard-Ballroom": (545, 465),
         "Billiard-Dinning": (770, 320),
         "Dinning-Kitchen": (995, 465),
         "Conservatory-Ballroom": (320, 600),
