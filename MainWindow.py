@@ -73,8 +73,19 @@ class GameBoard(QWidget):
 
     @QtCore.pyqtSlot(str)
     def ShowCard(self, card: str):
-        card = ChoiceDialog.ChoiceDialog(card)
-        card.exec()
+        l = QLabel()
+        l.setText(card)
+        l.setAlignment(Qt.AlignHCenter)
+        l.show()
+        self.Board.hide()
+        self.layout().replaceWidget(self.Board, l)
+        time.sleep(2)
+        #card = ChoiceDialog.ChoiceDialog(card)
+        #card.exec()
+        self.layout().replaceWidget(l, self.Board)
+        self.Board.show()
+        l.hide()
+        l.close()
 
     @QtCore.pyqtSlot()
     def GameOver(self):
