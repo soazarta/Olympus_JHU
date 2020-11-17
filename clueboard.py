@@ -6,7 +6,7 @@ from src.models import Player
 
 
 class ClueBoard(QWidget):
-    chars = dict()
+    chars = []
     CharacterColors = {
         "Mrs. White": Qt.gray,
         "Mr. Green": Qt.green,
@@ -43,14 +43,16 @@ class ClueBoard(QWidget):
         QWidget.__init__(self, parent)
 
     def updateChars(self, state: str):
-        for s in state.splitlines():
-            self.chars[s.split(':')[0]] = s.split(':')[1]
+        self.chars.clear()
+        allChars = state.splitlines()
+        for s in allChars:
+            self.chars.append(s.split(':'))
 
     def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
         painter = QPainter(self)
         pixmap = QPixmap("QTDesigner/ClueBoard.jpg")
         painter.drawPixmap(self.rect(), pixmap)
-        for c in self.chars.items():
+        for c in self.chars:
             brush = QBrush(self.CharacterColors[c[0]])
             painter.setBrush(brush)
             painter.drawEllipse(self.RoomPositions[c[1]][0], self.RoomPositions[c[1]][1], 65, 65)

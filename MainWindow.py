@@ -27,7 +27,7 @@ PORT = 54321
 class GameBoard(QWidget):
     # Declare Signals
     showcard = pyqtSignal(str)
-    endgame = pyqtSignal()
+    endgame = pyqtSignal(str)
 
     waitingScreen = []
     movie = []
@@ -76,9 +76,9 @@ class GameBoard(QWidget):
         card = ChoiceDialog.ChoiceDialog(card)
         card.exec()
 
-    @QtCore.pyqtSlot()
-    def GameOver(self):
-        gameover = ChoiceDialog.ChoiceDialog("You Accused the Wrong Person!\nGame Over!")
+    @QtCore.pyqtSlot(str)
+    def GameOver(self, data: str):
+        gameover = ChoiceDialog.ChoiceDialog(data)
         gameover.exec()
         self.close()
 
@@ -286,7 +286,7 @@ class MainWindow(QMainWindow):
                     self.boardWindow.Board.updateChars(data)
             if header == GAME_OVER:
                 self.boardWindow.waiting = False
-                self.boardWindow.endgame.emit()
+                self.boardWindow.endgame.emit(data)
                 # wait for board to be closed
                 while not self.boardWindow.isVisible():
                     pass
