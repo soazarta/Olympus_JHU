@@ -2,7 +2,7 @@ import sys
 from PyQt5 import uic
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import *
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, pyqtSignal
 from PyQt5.QtWidgets import *
 from QTRecources import characters_rc
 from QTRecources import Title_rc
@@ -25,6 +25,10 @@ PORT = 54321
 
 
 class GameBoard(QWidget):
+    # Declare Signals
+    showcard = pyqtSignal(str)
+    endgame = pyqtSignal()
+
     waitingScreen = []
     movie = []
     waiting = True
@@ -46,6 +50,10 @@ class GameBoard(QWidget):
 
     def __init__(self):
         super().__init__()
+        # Connect the signals
+        self.endgame.connect(self.GameOver)
+        self.showcard.connect(self.ShowCard)
+
         uic.loadUi("QTDesigner/GameBoard.ui", self)
         self.setFixedSize(self.size())
         self.movie = QMovie("QTDesigner/ClueLoadingScreen.gif")
@@ -62,6 +70,17 @@ class GameBoard(QWidget):
         # update the timer every tenth second
         self.timer.start(100)
         self.LockIn.clicked.connect(self.SetAction)
+
+    @QtCore.pyqtSlot(str)
+    def ShowCard(self, card: str):
+        card = ChoiceDialog.ChoiceDialog(card)
+        card.exec()
+
+    @QtCore.pyqtSlot()
+    def GameOver(self):
+        gameover = ChoiceDialog.ChoiceDialog("You Accused the Wrong Person!\nGame Over!")
+        gameover.exec()
+        self.close()
 
     def setAvatar(self, character):
         pixMap = QPixmap(self.charAvatar[character])
@@ -146,6 +165,8 @@ class GameBoard(QWidget):
         options = list(data.keys())
         self.response = None
         self.OptionCombo.clear()
+        self.OptionCombo.setPlaceholderText("Choose an Action")
+        self.OptionCombo.setCurrentIndex(-1)
         for o in options:
             self.OptionCombo.addItem(o)
 
@@ -197,6 +218,7 @@ class MainWindow(QMainWindow):
     characterWindow = []
     boardWindow = []
     displayBoard = False
+    gameOver = False
 
     def __init__(self):
         super().__init__()
@@ -254,13 +276,22 @@ class MainWindow(QMainWindow):
                         time.sleep(.5)
                         self.characterWindow.close()
                     else:
-                        print(data)
+                        s = data.split()
+                        if s[2] == "showed":
+                            self.boardWindow.showcard.emit(data)
+                        else:
+                            print(data)
                 else:
                     # Re-paint the board with new state
                     self.boardWindow.Board.updateChars(data)
             if header == GAME_OVER:
-                print(data)
+                self.boardWindow.waiting = False
+                self.boardWindow.endgame.emit()
+                # wait for board to be closed
+                while not self.boardWindow.isVisible():
+                    pass
                 socket.close()
+                self.close()
                 return
             if header == OPTIONS:
                 self.boardWindow.waiting = False
@@ -286,6 +317,8 @@ def main():
     # Run the client GUI
     mainwindow.show()
     app.exec()
+    print("K")
+    x.join()
 
 
 if __name__ == "__main__":
