@@ -1,7 +1,9 @@
 import logging
+import os
 import pickle
 import select
 import socket
+import ssl
 import time
 from typing import Dict, List
 
@@ -100,12 +102,22 @@ def handle_clients(s: socket.socket) -> None:
 
 if __name__ == "__main__":
     # Server socket setup
+    if not os.path.exists("cert.pem") or not os.path.exists("key.pem"):
+        # Dummy self-signed certs
+        command = "echo \"\n\n\n\n\n\n\n\" | openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem 2>/dev/null"
+        os.system(command)
+
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.load_cert_chain('cert.pem', 'key.pem')
+
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind((HOST, PORT))
     s.listen(4)
 
+    wrapped = context.wrap_socket(s, server_side=True)
+
     logging.debug(f"Listening on {HOST}:{PORT}")
 
     # Handle client connections
-    handle_clients(s)
+    handle_clients(wrapped)

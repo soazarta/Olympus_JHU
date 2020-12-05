@@ -10,6 +10,7 @@ from QTRecources import GameBoard_rc
 from clickablelabel import *
 from clueboard import *
 import socket
+import ssl
 import threading
 import time
 import src.Game as Game
@@ -309,10 +310,12 @@ def main():
     app = QApplication(sys.argv)
     # Create Socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((HOST, PORT))
+    context = ssl._create_unverified_context()
+    wrapped =context.wrap_socket(s, server_hostname=HOST)
+    wrapped.connect((HOST, PORT))
     mainwindow = MainWindow()
     # Start Client Thread
-    x = threading.Thread(target=mainwindow.packetHandler, args=(s,))
+    x = threading.Thread(target=mainwindow.packetHandler, args=(wrapped,))
     x.start()
     # Run the client GUI
     mainwindow.show()
