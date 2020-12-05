@@ -1,5 +1,17 @@
 # Clue-Less Game
 
+## Setup
+
+Build and run the server
+```
+docker build -t clueless-server .
+docker run -p 54321:54321 clueless-server
+```
+
+Run clients
+```
+python3 MainWindow.py
+```
 
 ### Current Functionality
 

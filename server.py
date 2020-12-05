@@ -14,7 +14,7 @@ from src.validator import get_options, validate
 
 logging.basicConfig(level=logging.DEBUG)
 
-HOST = "localhost"
+HOST = "0.0.0.0"
 PORT = 54321
 
 MAX_PLAYERS = 2
