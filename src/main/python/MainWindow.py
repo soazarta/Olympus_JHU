@@ -16,6 +16,7 @@ import time
 import src.Game as Game
 import ChoiceDialog
 import pickle
+from fbs_runtime.application_context.PyQt5 import ApplicationContext
 
 from src.messages import *
 from src.options import *
@@ -39,25 +40,26 @@ class GameBoard(QWidget):
     currentOptions = []
     res = dict()
     currentData = []
-    charAvatar = {
-        "Mrs. White": "QTDesigner/MadameWhite.jpg",
-        "Mr. Green": "QTDesigner/LordGreen.jpg",
-        "Mrs. Peacock": "QTDesigner/DamePeacock.jpg",
-        "Professor Plum": "QTDesigner/ProfPlum.jpg",
-        "Miss Scarlet": "QTDesigner/MlleScarlet.jpg",
-        "Colonel Mustard": "QTDesigner/ColMustard.jpg"
-    }
 
-
-    def __init__(self):
+    def __init__(self, ctx: ApplicationContext):
         super().__init__()
+        self.ctx = ctx
         # Connect the signals
         self.endgame.connect(self.GameOver)
         self.showcard.connect(self.ShowCard)
 
-        uic.loadUi("QTDesigner/GameBoard.ui", self)
+        self.charAvatar = {
+            "Mrs. White": self.ctx.get_resource("QTDesigner/MadameWhite.jpg"),
+            "Mr. Green": self.ctx.get_resource("QTDesigner/LordGreen.jpg"),
+            "Mrs. Peacock": self.ctx.get_resource("QTDesigner/DamePeacock.jpg"),
+            "Professor Plum": self.ctx.get_resource("QTDesigner/ProfPlum.jpg"),
+            "Miss Scarlet": self.ctx.get_resource("QTDesigner/MlleScarlet.jpg"),
+            "Colonel Mustard": self.ctx.get_resource("QTDesigner/ColMustard.jpg")
+        }
+
+        uic.loadUi(self.ctx.get_resource("QTDesigner/GameBoard.ui"), self)
         self.setFixedSize(self.size())
-        self.movie = QMovie("QTDesigner/ClueLoadingScreen.gif")
+        self.movie = QMovie(self.ctx.get_resource("QTDesigner/ClueLoadingScreen.gif"))
         self.waitingScreen = QLabel()
         self.waitingScreen.setAlignment(Qt.AlignHCenter)
         self.waitingScreen.setMovie(self.movie)
@@ -181,9 +183,10 @@ class CharacterSelect(QWidget):
     selected = ""
     charLocked = False
 
-    def __init__(self):
+    def __init__(self, ctx: ApplicationContext):
         super().__init__()
-        uic.loadUi("QTDesigner/CharacterSelect.ui", self)
+        self.ctx = ctx
+        uic.loadUi(self.ctx.get_resource("QTDesigner/CharacterSelect.ui"), self)
         self.setFixedSize(self.size())
         # Find all clickable labels and load in Character names
         self.availableChars = Game.CHARACTERS
@@ -221,12 +224,13 @@ class MainWindow(QMainWindow):
     displayBoard = False
     gameOver = False
 
-    def __init__(self):
+    def __init__(self, ctx: ApplicationContext):
         super().__init__()
-        uic.loadUi("QTDesigner/Clue-Less.ui", self)
+        self.ctx = ctx
+        uic.loadUi(ctx.get_resource("QTDesigner/Clue-Less.ui"), self)
         self.setFixedSize(self.size())
-        self.boardWindow = GameBoard()
-        self.characterWindow = CharacterSelect()
+        self.boardWindow = GameBoard(self.ctx)
+        self.characterWindow = CharacterSelect(self.ctx)
         self.pushButton.clicked.connect(self.buttonPressed)
         # creating a timer object
         self.timer = QTimer()
@@ -308,20 +312,21 @@ class MainWindow(QMainWindow):
 def main():
     # Create MainWindow
     app = QApplication(sys.argv)
+    ctx = ApplicationContext()
     # Create Socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     context = ssl._create_unverified_context()
     wrapped =context.wrap_socket(s, server_hostname=HOST)
     wrapped.connect((HOST, PORT))
-    mainwindow = MainWindow()
+    mainwindow = MainWindow(ctx)
     # Start Client Thread
     x = threading.Thread(target=mainwindow.packetHandler, args=(wrapped,))
     x.start()
     # Run the client GUI
     mainwindow.show()
-    app.exec()
-    print("K")
+    exit_code = ctx.app.exec_()
     x.join()
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

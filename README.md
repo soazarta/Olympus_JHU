@@ -8,9 +8,18 @@ docker build -t clueless-server .
 docker run -p 54321:54321 clueless-server
 ```
 
-Run clients
+Install Python dependencies and run clients
+
 ```
-python3 MainWindow.py
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+fbs run
+```
+
+Optionally build an executable for your platform
+```
+fbs freeze
 ```
 
 ### Current Functionality

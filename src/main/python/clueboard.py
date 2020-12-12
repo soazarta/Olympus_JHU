@@ -3,6 +3,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
 from src.models import Player
+from fbs_runtime.application_context.PyQt5 import ApplicationContext
 
 
 class ClueBoard(QWidget):
@@ -50,7 +51,9 @@ class ClueBoard(QWidget):
 
     def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
         painter = QPainter(self)
-        pixmap = QPixmap("QTDesigner/ClueBoard.jpg")
+        # Little hacky, it's fine
+        ctx = ApplicationContext()
+        pixmap = QPixmap(ctx.get_resource("QTDesigner/ClueBoard.jpg"))
         painter.drawPixmap(self.rect(), pixmap)
         for c in self.chars:
             brush = QBrush(self.CharacterColors[c[0]])

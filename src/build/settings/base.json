@@ -1,0 +1,6 @@
+{
+    "app_name": "Clueless",
+    "author": "Olympus Engineers",
+    "main_module": "src/main/python/MainWindow.py",
+    "version": "1.0.0"
+}
