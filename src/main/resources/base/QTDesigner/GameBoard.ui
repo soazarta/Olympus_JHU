@@ -73,6 +73,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QLabel" name="Update">
+          <property name="text">
+           <string>Waiting For Player to Show a Card...</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLabel" name="CharAvatar">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">

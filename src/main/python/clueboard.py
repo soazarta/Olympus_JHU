@@ -53,9 +53,10 @@ class ClueBoard(QWidget):
         painter = QPainter(self)
         # Little hacky, it's fine
         ctx = ApplicationContext()
-        pixmap = QPixmap(ctx.get_resource("QTDesigner/ClueBoard.jpg"))
+        pixmap = QPixmap(ctx.get_resource("QTDesigner/ClueBoard.png"))
         painter.drawPixmap(self.rect(), pixmap)
         for c in self.chars:
             brush = QBrush(self.CharacterColors[c[0]])
             painter.setBrush(brush)
             painter.drawEllipse(self.RoomPositions[c[1]][0], self.RoomPositions[c[1]][1], 65, 65)
+        painter.end()

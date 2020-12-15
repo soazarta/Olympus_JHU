@@ -283,7 +283,7 @@ class MainWindow(QMainWindow):
                     else:
                         s = data.split()
                         if s[2] == "showed":
-                            self.boardWindow.showcard.emit(data)
+                            self.boardWindow.Update.setText(data)
                         else:
                             print(data)
                 else:
